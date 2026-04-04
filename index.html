@@ -292,12 +292,24 @@ const stOf=(p,lim)=>{if(lim<=0)return{t:'No limit',c:'neutral'};if(p<30)return{t
 let tTimer;
 function showToast(m,d=2200){const e=document.getElementById('toastEl');e.textContent=m;e.classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>e.classList.remove('show'),d)}
 
-// storage
-async function rLoad(u){try{const r=await window.storage.get('cl:cards:'+u);return r?JSON.parse(r.value):null}catch{return null}}
-async function rSave(u,d){try{await window.storage.set('cl:cards:'+u,JSON.stringify(d))}catch(e){console.error(e)}}
-async function uExists(u){try{const r=await window.storage.get('cl:auth:'+u);return r?JSON.parse(r.value):null}catch{return null}}
-async function uCreate(u,n,e,ph,p){const h=btoa(p+u+'cl2025');await window.storage.set('cl:auth:'+u,JSON.stringify({username:u,displayName:n,email:e,phone:ph,hash:h}))}
-async function uVerify(u,p){const d=await uExists(u);if(!d)return null;const h=btoa(p+u+'cl2025');return d.hash===h?d:null}
+// storage — localStorage-based, works on GitHub Pages & any host
+// Each user's auth and card data is stored under their own key
+function store_get(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null}catch{return null}}
+function store_set(key,val){try{localStorage.setItem(key,JSON.stringify(val));return true}catch{return false}}
+
+async function rLoad(u){return store_get('cl:cards:'+u)}
+async function rSave(u,d){store_set('cl:cards:'+u,d)}
+async function uExists(u){return store_get('cl:auth:'+u)}
+async function uCreate(u,n,e,ph,p){
+  const h=btoa(unescape(encodeURIComponent(p+u+'cl2025')));
+  store_set('cl:auth:'+u,{username:u,displayName:n,email:e,phone:ph,hash:h});
+}
+async function uVerify(u,p){
+  const d=await uExists(u);
+  if(!d)return null;
+  const h=btoa(unescape(encodeURIComponent(p+u+'cl2025')));
+  return d.hash===h?d:null;
+}
 
 // auth ui
 function switchTab(t){
