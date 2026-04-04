@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>CardLens — Credit Tracker</title>
+<title>CardLens — Credit Card Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -20,58 +21,94 @@
   --shadow-sm:0 1px 3px rgba(0,0,0,.07);
 }
 html,body{height:100%}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
-button,input,textarea{font-family:inherit}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit}
 button{cursor:pointer}
+
+/* ── SCREENS ── */
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex}
-/* AUTH */
-#screen-auth{align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1d2e 0%,#2d2060 100%);padding:20px}
-.auth-card{background:var(--surface);border-radius:20px;padding:36px 32px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.3)}
+
+/* ── AUTH ── */
+#screen-auth{align-items:center;justify-content:center;min-height:100vh;padding:20px;
+  background:linear-gradient(135deg,#1a1d2e 0%,#2d2060 100%);}
+.auth-bg-orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.15;pointer-events:none}
+.orb1{width:500px;height:500px;background:#6c63ff;top:-100px;right:-100px}
+.orb2{width:400px;height:400px;background:#12b76a;bottom:-80px;left:-80px}
+.auth-card{background:var(--surface);border-radius:20px;padding:36px 32px;width:100%;max-width:460px;
+  box-shadow:0 24px 64px rgba(0,0,0,.35);position:relative;z-index:1}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center}
 .auth-logo-icon{width:44px;height:44px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
 .auth-logo-text{font-size:22px;font-weight:800;letter-spacing:-.5px}
 .auth-logo-text span{color:var(--accent)}
-.auth-tabs{display:flex;background:var(--surface2);border-radius:var(--r-sm);padding:3px;margin-bottom:24px}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:var(--r-sm);padding:3px;margin-bottom:22px}
 .auth-tab{flex:1;padding:8px;border-radius:8px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--muted);transition:all .2s}
 .auth-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.field input{width:100%;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;font-size:14px;color:var(--text);background:var(--surface);transition:border-color .15s,box-shadow .15s;outline:none}
-.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
-.btn-full{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;transition:opacity .15s,transform .1s;box-shadow:0 4px 14px rgba(108,99,255,.35);margin-top:4px}
-.btn-full:hover{opacity:.88;transform:translateY(-1px)}
-.auth-err{background:var(--red-lt);color:#b42318;border-radius:var(--r-sm);padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:14px;display:none}
-.auth-err.show{display:block}
+
+/* Step dots for register */
+.reg-steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:20px}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);transition:all .3s}
+.step-dot.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.step-dot.done{border-color:var(--green);background:var(--green);color:#fff}
+.step-line{height:2px;width:40px;background:var(--border);transition:background .3s}
+.step-line.done{background:var(--green)}
+.reg-panel{display:none}.reg-panel.active{display:block}
+
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.field .opt{font-size:10px;font-weight:500;background:var(--surface2);padding:1px 7px;border-radius:99px;margin-left:5px;text-transform:none;letter-spacing:0;color:var(--muted)}
+.field input,.field select{width:100%;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 13px;font-size:14px;color:var(--text);background:var(--surface);transition:border-color .15s,box-shadow .15s;outline:none;appearance:none}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .field-hint{font-size:11px;color:var(--muted);margin-top:4px}
-.opt-label{font-size:10px;font-weight:500;color:var(--muted);background:var(--surface2);padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:4px;text-transform:none;letter-spacing:0}
-.form-title{font-size:18px;font-weight:800;margin-bottom:4px}
-.form-sub{font-size:13px;color:var(--muted);margin-bottom:22px}
-/* APP */
+.field-err{font-size:11px;color:var(--red);margin-top:4px;display:none}
+.field-err.show{display:block}
+
+.btn-full{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);
+  font-size:14px;font-weight:700;transition:opacity .15s,transform .1s;
+  box-shadow:0 4px 14px rgba(108,99,255,.35);margin-top:4px}
+.btn-full:hover{opacity:.88;transform:translateY(-1px)}
+.btn-full:disabled{opacity:.5;pointer-events:none}
+.btn-full.secondary{background:var(--surface2);color:var(--text);box-shadow:none;border:1.5px solid var(--border)}
+.btn-full.secondary:hover{background:var(--border)}
+
+.auth-err{background:var(--red-lt);color:#b42318;border-radius:var(--r-sm);padding:10px 13px;font-size:13px;
+  font-weight:500;margin-bottom:12px;display:none}
+.auth-err.show{display:block}
+.auth-footer-note{text-align:center;font-size:11.5px;color:var(--muted);margin-top:16px}
+
+/* ── APP ── */
 #screen-app{flex-direction:column}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.app-logo{display:flex;align-items:center;gap:8px}
 .app-logo-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
 .app-logo-text{font-size:15px;font-weight:800;letter-spacing:-.3px}
 .app-logo-text span{color:var(--accent)}
 .topbar-right{display:flex;align-items:center;gap:8px}
-.btn-sm{padding:8px 14px;border-radius:var(--r-sm);border:none;font-size:13px;font-weight:600;transition:all .15s;white-space:nowrap}
+.btn-sm{padding:7px 13px;border-radius:var(--r-sm);border:none;font-size:13px;font-weight:600;transition:all .15s}
 .btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(108,99,255,.25)}
 .btn-primary:hover{opacity:.88}
 .btn-ghost{background:var(--surface2);color:var(--muted)}
 .btn-ghost:hover{background:var(--border);color:var(--text)}
-.btn-danger{background:var(--red-lt);color:var(--red)}
-.btn-danger:hover{background:var(--red);color:#fff}
-.btn-icon{width:34px;height:34px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--muted);transition:background .15s}
+.btn-danger-sm{background:var(--red-lt);color:var(--red)}
+.btn-danger-sm:hover{background:var(--red);color:#fff}
+.btn-icon{width:34px;height:34px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--muted);transition:background .15s}
 .btn-icon:hover{background:var(--surface2)}
-.user-pill{display:flex;align-items:center;gap:7px;background:var(--surface2);border-radius:99px;padding:4px 12px 4px 5px;cursor:pointer;transition:background .15s}
+.user-pill{display:flex;align-items:center;gap:7px;background:var(--surface2);border-radius:99px;
+  padding:4px 12px 4px 5px;cursor:pointer;transition:background .15s}
 .user-pill:hover{background:var(--border)}
-.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a78bfa);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a78bfa);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
 .uname{font-size:13px;font-weight:600;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .page{padding:18px 16px 80px;max-width:900px;margin:0 auto;width:100%}
-/* KPI */
+
+/* ── KPI ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 16px;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .15s;position:relative}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 16px;
+  box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .15s;position:relative}
 .kpi:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
 .kpi-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px}
 .kpi-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
@@ -81,31 +118,40 @@ button{cursor:pointer}
 .kpi.red    .kpi-icon{background:var(--red-lt)}    .kpi.red    .kpi-value{color:var(--red)}
 .kpi.green  .kpi-icon{background:var(--green-lt)}  .kpi.green  .kpi-value{color:var(--green)}
 .kpi.blue   .kpi-icon{background:var(--blue-lt)}   .kpi.blue   .kpi-value{color:var(--blue)}
-.eye-btn{position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:13px;color:var(--muted2);padding:2px;transition:color .15s;line-height:1}
+.eye-btn{position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:13px;
+  color:var(--muted2);padding:2px;transition:color .15s;line-height:1}
 .eye-btn:hover{color:var(--muted)}
-/* SEC HEAD */
+
+/* ── SECTION HEAD ── */
 .sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .sec-head h2{font-size:15px;font-weight:700}
 .sec-head p{font-size:12px;color:var(--muted);margin-top:1px}
-/* CARD LIST */
+
+/* ── CARD LIST ── */
 .card-list{display:flex;flex-direction:column;gap:12px}
-.cc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .2s}
+.cc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .2s}
 .cc-card:hover{box-shadow:var(--shadow)}
 .cc-card-header{display:flex;align-items:center;gap:12px;padding:15px 16px 10px}
-.cc-dot{width:40px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.cc-dot{width:40px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
 .cc-info{flex:1;min-width:0}
-.cc-name-inp{background:transparent;border:1.5px solid transparent;border-radius:6px;padding:3px 6px;font-size:14px;font-weight:700;color:var(--text);width:100%;outline:none;transition:all .15s}
+.cc-name-inp{background:transparent;border:1.5px solid transparent;border-radius:6px;padding:3px 6px;
+  font-size:14px;font-weight:700;color:var(--text);width:100%;outline:none;transition:all .15s}
 .cc-name-inp:focus{border-color:var(--accent);background:var(--accent-lt)}
-.cc-note-inp{background:transparent;border:1.5px solid transparent;border-radius:5px;padding:2px 6px;font-size:12px;color:var(--muted);width:100%;outline:none;transition:all .15s;margin-top:2px}
+.cc-note-inp{background:transparent;border:1.5px solid transparent;border-radius:5px;padding:2px 6px;
+  font-size:12px;color:var(--muted);width:100%;outline:none;transition:all .15s;margin-top:2px}
 .cc-note-inp:focus{border-color:var(--accent);background:var(--accent-lt);color:var(--text)}
 .cc-acts{display:flex;gap:6px;flex-shrink:0}
-.cc-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:all .15s}
+.cc-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;
+  display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:all .15s}
 .cc-btn:hover{background:var(--surface2)}
 .cc-btn.del:hover{background:var(--red-lt);border-color:var(--red);color:var(--red)}
 .cc-btn.eye:hover{background:var(--accent-lt);border-color:var(--accent);color:var(--accent)}
 .cc-body{padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cc-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;display:block}
-.cc-inp{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:14px;font-weight:600;color:var(--text);background:var(--surface2);outline:none;transition:all .15s}
+.cc-inp{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-size:14px;
+  font-weight:600;color:var(--text);background:var(--surface2);outline:none;transition:all .15s}
 .cc-inp:focus{border-color:var(--accent);background:var(--accent-lt);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
 .cc-inp[readonly]{background:var(--surface);cursor:default}
 .cc-foot{border-top:1px solid var(--border);padding:11px 16px;display:flex;align-items:center;gap:10px}
@@ -118,7 +164,8 @@ button{cursor:pointer}
 .badge.warn   {background:var(--amber-lt);color:#946308}
 .badge.danger {background:var(--red-lt);color:#b42318}
 .badge.neutral{background:var(--surface2);color:var(--muted)}
-/* BOTTOM */
+
+/* ── BOTTOM PANELS ── */
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:18px}
 .panel h3{font-size:13.5px;font-weight:700;margin-bottom:14px}
@@ -133,41 +180,46 @@ button{cursor:pointer}
 .tip-ico{font-size:16px;flex-shrink:0;margin-top:1px}
 .tip-text b{display:block;font-weight:600;margin-bottom:1px;font-size:13px}
 .tip-text span{color:var(--muted);font-size:12px}
-/* LOADING */
-.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;z-index:200;flex-direction:column;gap:14px}
-.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-txt{font-size:13px;font-weight:500;color:var(--muted)}
-/* TOAST */
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--text);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform .3s,opacity .3s;opacity:0;z-index:300;white-space:nowrap;pointer-events:none}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:16px}
-.modal-bg.open{display:flex}
-.modal{background:var(--surface);border-radius:var(--r);padding:24px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.2)}
-.modal h3{font-size:16px;font-weight:700;margin-bottom:8px}
-.modal p{font-size:13px;color:var(--muted);margin-bottom:20px}
-.modal-acts{display:flex;gap:10px;justify-content:flex-end}
-/* EMPTY */
+
+/* ── EMPTY ── */
 .empty-st{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-ico{font-size:44px;margin-bottom:12px;display:block}
 .empty-st h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:5px}
 .empty-st p{font-size:13px;margin-bottom:18px}
-/* RESPONSIVE */
+
+/* ── LOADING ── */
+.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.92);display:flex;align-items:center;
+  justify-content:center;z-index:200;flex-direction:column;gap:14px}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;font-weight:500;color:var(--muted)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);
+  background:var(--text);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform .3s,opacity .3s;opacity:0;z-index:300;
+  white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;
+  align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);padding:24px;width:100%;max-width:360px;
+  box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:20px}
+.modal-acts{display:flex;gap:10px;justify-content:flex-end}
+
+/* ── RESPONSIVE ── */
 @media(max-width:680px){
   .kpi-grid{grid-template-columns:1fr 1fr;gap:10px}
   .kpi{padding:12px 13px} .kpi-value{font-size:17px}
   .bottom-grid{grid-template-columns:1fr}
   .page{padding:14px 12px 80px}
-}
-@media(max-width:540px){
-  .cc-body{grid-template-columns:1fr 1fr}
-}
-@media(max-width:400px){
-  .kpi-grid{grid-template-columns:1fr 1fr}
-  .topbar{padding:0 12px}
-  .app-logo-text{display:none}
-  .uname{display:none}
+  .auth-card{padding:28px 20px}
+  .field-row{grid-template-columns:1fr}
 }
 @media(min-width:680px){
   .cc-body{grid-template-columns:1fr 1fr 1fr 1fr}
@@ -176,45 +228,98 @@ button{cursor:pointer}
   .cc-foot{padding:13px 20px}
   .page{padding:24px 20px 60px}
 }
+@media(max-width:400px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .topbar{padding:0 12px}
+  .app-logo-text{display:none}
+  .uname{display:none}
+}
 </style>
 </head>
 <body>
+
 <!-- Loading -->
 <div class="loading-ov" id="loading"><div class="spinner"></div><div class="loading-txt" id="ltxt">Loading CardLens…</div></div>
 
-<!-- AUTH -->
+<!-- AUTH SCREEN -->
 <div class="screen" id="screen-auth">
+  <div class="auth-bg-orb orb1"></div>
+  <div class="auth-bg-orb orb2"></div>
   <div class="auth-card">
-    <div class="auth-logo"><div class="auth-logo-icon">💳</div><div class="auth-logo-text">Card<span>Lens</span></div></div>
+    <div class="auth-logo">
+      <div class="auth-logo-icon">💳</div>
+      <div class="auth-logo-text">Card<span>Lens</span></div>
+    </div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
-      <button class="auth-tab" onclick="switchTab('signup')">Create Account</button>
+      <button class="auth-tab" onclick="switchTab('register')">Create Account</button>
     </div>
-    <div id="auth-err" class="auth-err"></div>
+    <div class="auth-err" id="auth-err"></div>
+
+    <!-- LOGIN FORM -->
     <div id="form-login">
-      <div class="form-title">Welcome back</div>
-      <div class="form-sub">Sign in to access your credit cards</div>
-      <div class="field"><label>Username</label><input id="li-u" type="text" placeholder="your_username" autocomplete="username"/></div>
-      <div class="field"><label>Password</label><input id="li-p" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
-      <button class="btn-full" onclick="doLogin()">Sign In →</button>
+      <div class="field"><label>Email</label>
+        <input id="li-email" type="email" placeholder="you@gmail.com" autocomplete="email"/>
+      </div>
+      <div class="field"><label>Password</label>
+        <input id="li-pass" type="password" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button class="btn-full" id="btn-login" onclick="doLogin()">Sign In →</button>
+      <p class="auth-footer-note">🔒 Secured by Supabase · Your data is private</p>
     </div>
-    <div id="form-signup" style="display:none">
-      <div class="form-title">Create your account</div>
-      <div class="form-sub">Free · Your data stays private</div>
-      <div class="field"><label>Username</label><input id="su-u" type="text" placeholder="e.g. john_doe" autocomplete="username"/></div>
-      <div class="field"><label>Display Name</label><input id="su-n" type="text" placeholder="e.g. John"/></div>
-      <div class="field"><label>Email Address</label><input id="su-e" type="email" placeholder="you@gmail.com" autocomplete="email"/><div class="field-hint">Must be a real email provider (no temp mail)</div></div>
-      <div class="field"><label>Phone Number <span class="opt-label">optional</span></label><input id="su-ph" type="tel" placeholder="+1 (647) 555-0100" autocomplete="tel"/></div>
-      <div class="field"><label>Password</label><input id="su-p" type="password" placeholder="Min 6 characters" autocomplete="new-password"/></div>
-      <button class="btn-full" onclick="doSignup()">Create Account →</button>
+
+    <!-- REGISTER FORM — 2 steps -->
+    <div id="form-register" style="display:none">
+      <div class="reg-steps">
+        <div class="step-dot active" id="sdot1">1</div>
+        <div class="step-line" id="sline1"></div>
+        <div class="step-dot" id="sdot2">2</div>
+      </div>
+
+      <!-- Step 1: Account details -->
+      <div class="reg-panel active" id="reg-step1">
+        <div class="field"><label>Full Name</label>
+          <input id="r-name" type="text" placeholder="e.g. John Smith" autocomplete="name"/>
+        </div>
+        <div class="field"><label>Email Address</label>
+          <input id="r-email" type="email" placeholder="you@gmail.com" autocomplete="email"/>
+          <div class="field-hint">Must be a real provider — no temp/disposable emails</div>
+          <div class="field-err" id="err-email">Please enter a valid email address.</div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Password</label>
+            <input id="r-pass" type="password" placeholder="Min 6 chars" autocomplete="new-password"/>
+          </div>
+          <div class="field"><label>Confirm</label>
+            <input id="r-confirm" type="password" placeholder="Repeat"/>
+          </div>
+        </div>
+        <button class="btn-full" onclick="regStep1Next()">Continue →</button>
+      </div>
+
+      <!-- Step 2: Profile details -->
+      <div class="reg-panel" id="reg-step2">
+        <div class="field"><label>Username</label>
+          <input id="r-user" type="text" placeholder="e.g. john_doe" autocomplete="username"/>
+        </div>
+        <div class="field"><label>Phone Number <span class="opt">optional</span></label>
+          <input id="r-phone" type="tel" placeholder="+1 (647) 555-0100" autocomplete="tel"/>
+        </div>
+        <div class="field-row" style="margin-top:4px">
+          <button class="btn-full secondary" onclick="regBack()">← Back</button>
+          <button class="btn-full" id="btn-register" onclick="doRegister()">Create Account</button>
+        </div>
+      </div>
+      <p class="auth-footer-note">🔒 Secured by Supabase · Your data is private</p>
     </div>
   </div>
 </div>
 
-<!-- APP -->
+<!-- APP SCREEN -->
 <div class="screen" id="screen-app">
   <div class="topbar">
-    <div class="topbar-left">
+    <div class="app-logo">
       <div class="app-logo-icon">💳</div>
       <div class="app-logo-text">Card<span>Lens</span></div>
     </div>
@@ -231,10 +336,10 @@ button{cursor:pointer}
     <div class="kpi-grid">
       <div class="kpi purple"><button class="eye-btn" id="ey-l" onclick="toggleKpi('limit')">👁</button><div class="kpi-icon">💳</div><div class="kpi-label">Total Limit</div><div class="kpi-value" id="k-limit">$0</div><div class="kpi-sub">All cards</div></div>
       <div class="kpi red">   <button class="eye-btn" id="ey-s" onclick="toggleKpi('spent')">👁</button><div class="kpi-icon">💸</div><div class="kpi-label">Total Spent</div><div class="kpi-value" id="k-spent">$0</div><div class="kpi-sub">This cycle</div></div>
-      <div class="kpi green"> <button class="eye-btn" id="ey-a" onclick="toggleKpi('avail')">👁</button><div class="kpi-icon">🏦</div><div class="kpi-label">Available</div> <div class="kpi-value" id="k-avail">$0</div><div class="kpi-sub">Remaining</div></div>
+      <div class="kpi green"> <button class="eye-btn" id="ey-a" onclick="toggleKpi('avail')">👁</button><div class="kpi-icon">🏦</div><div class="kpi-label">Available</div><div class="kpi-value" id="k-avail">$0</div><div class="kpi-sub">Remaining</div></div>
       <div class="kpi blue">  <div class="kpi-icon">📉</div><div class="kpi-label">Utilization</div><div class="kpi-value" id="k-util">—</div><div class="kpi-sub" id="k-sub">Set limits first</div></div>
     </div>
-    <div class="sec-head"><div><h2>My Credit Cards</h2><p>Sorted by limit · Tap any field to edit · 👁 to hide balance</p></div></div>
+    <div class="sec-head"><div><h2>My Credit Cards</h2><p>Sorted by limit · Tap any field to edit</p></div></div>
     <div class="card-list" id="card-list"></div>
     <div class="bottom-grid">
       <div class="panel"><h3>📊 Utilization Chart</h3><div class="bar-chart" id="bar-chart"><p style="color:var(--muted);font-size:13px">Add credit limits to see chart</p></div></div>
@@ -252,13 +357,14 @@ button{cursor:pointer}
 <div class="modal-bg" id="del-modal">
   <div class="modal">
     <h3>Delete Card?</h3>
-    <p>This will permanently remove "<span id="del-nm">this card</span>" and all its data.</p>
+    <p>This will permanently remove "<span id="del-nm">this card</span>".</p>
     <div class="modal-acts">
       <button class="btn-sm btn-ghost" onclick="closeModals()">Cancel</button>
-      <button class="btn-sm btn-danger" onclick="confirmDel()">Delete</button>
+      <button class="btn-sm btn-danger-sm" onclick="confirmDel()">Delete</button>
     </div>
   </div>
 </div>
+
 <!-- Logout modal -->
 <div class="modal-bg" id="lo-modal">
   <div class="modal">
@@ -266,7 +372,7 @@ button{cursor:pointer}
     <p>Your data is saved and will be here when you come back from any device.</p>
     <div class="modal-acts">
       <button class="btn-sm btn-ghost" onclick="closeModals()">Cancel</button>
-      <button class="btn-sm btn-danger" onclick="doLogout()">Sign Out</button>
+      <button class="btn-sm btn-danger-sm" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
 </div>
@@ -274,10 +380,30 @@ button{cursor:pointer}
 <div class="toast" id="toastEl"></div>
 
 <script>
-const COLORS=['#6c63ff','#0ea5e9','#12b76a','#f04438','#f79009','#ec4899','#8b5cf6','#14b8a6','#f97316','#ef4444'];
-let user=null, cards=[], hidKpis={}, hidCards={}, delTarget=null, saveTimer=null;
+// ═══════════════════════════════════════════════════
+// SUPABASE CONFIG — replace with your project values
+// Get these from: https://supabase.com → Project Settings → API
+// ═══════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://obliysgyuizoyxkevqxv.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibGl5c2d5dWl6b3l4a2V2cXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NzkzMjQsImV4cCI6MjA4OTI1NTMyNH0.x5G8rtTC8xisZAcQ7d251kYbATp8ihBARd02Mb_4Vyo';
 
-// utils
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── TEMP MAIL BLOCKLIST ──
+const TEMP_DOMAINS=new Set(['mailinator.com','guerrillamail.com','guerrillamail.net','guerrillamail.org','sharklasers.com','grr.la','spam4.me','yopmail.com','yopmail.fr','cool.fr.nf','jetable.fr.nf','nospam.ze.tc','nomail.xl.cx','trashmail.at','trashmail.io','trashmail.me','trashmail.net','trashmail.xyz','trashmail.com','dispostable.com','mailnull.com','throwam.com','spamgourmet.com','fakeinbox.com','maildrop.cc','discard.email','tempmail.com','tempmail.net','temp-mail.org','temp-mail.io','tempmailo.com','tmailinator.com','throwaway.email','getairmail.com','filzmail.com','mailsac.com','mailnew.com','trashmail.de','trashmail.fr','trash-mail.at','trash-mail.com','trash-mail.de','trash-mail.io','10minutemail.com','guerrillamailblock.com','spamfree24.org','spam.la','tmail.io','binkmail.com','bob.email','discard.email','mailexpire.com','spammotel.com','spamspot.com','spamstack.net','throwam.net','mytrashmail.com']);
+
+function isValidEmail(e){
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e))return{ok:false,msg:'Please enter a valid email address.'};
+  const d=e.split('@')[1].toLowerCase();
+  if(TEMP_DOMAINS.has(d))return{ok:false,msg:'Disposable/temp emails not allowed. Use Gmail, Outlook, Yahoo, etc.'};
+  return{ok:true};
+}
+
+// ── STATE ──
+const COLORS=['#6c63ff','#0ea5e9','#12b76a','#f04438','#f79009','#ec4899','#8b5cf6','#14b8a6','#f97316','#ef4444'];
+let cards=[], hidKpis={}, hidCards={}, delTarget=null, saveTimer=null, currentUser=null;
+
+// ── UTILS ──
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const fmt=(n,h)=>h?'••••••':'$'+(+n||0).toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -290,90 +416,163 @@ const stOf=(p,lim)=>{if(lim<=0)return{t:'No limit',c:'neutral'};if(p<30)return{t
 
 // toast
 let tTimer;
-function showToast(m,d=2200){const e=document.getElementById('toastEl');e.textContent=m;e.classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>e.classList.remove('show'),d)}
+function showToast(m,d=2500){const e=document.getElementById('toastEl');e.textContent=m;e.classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>e.classList.remove('show'),d)}
+function authErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.classList.add('show')}
+function clearErr(){document.getElementById('auth-err').classList.remove('show')}
 
-// storage — localStorage-based, works on GitHub Pages & any host
-// Each user's auth and card data is stored under their own key
-function store_get(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null}catch{return null}}
-function store_set(key,val){try{localStorage.setItem(key,JSON.stringify(val));return true}catch{return false}}
-
-async function rLoad(u){return store_get('cl:cards:'+u)}
-async function rSave(u,d){store_set('cl:cards:'+u,d)}
-async function uExists(u){return store_get('cl:auth:'+u)}
-async function uCreate(u,n,e,ph,p){
-  const h=btoa(unescape(encodeURIComponent(p+u+'cl2025')));
-  store_set('cl:auth:'+u,{username:u,displayName:n,email:e,phone:ph,hash:h});
-}
-async function uVerify(u,p){
-  const d=await uExists(u);
-  if(!d)return null;
-  const h=btoa(unescape(encodeURIComponent(p+u+'cl2025')));
-  return d.hash===h?d:null;
-}
-
-// auth ui
+// ── AUTH TAB SWITCH ──
 function switchTab(t){
+  clearErr();
   const isL=t==='login';
   document.querySelectorAll('.auth-tab').forEach((x,i)=>x.classList.toggle('active',isL?i===0:i===1));
   document.getElementById('form-login').style.display=isL?'':'none';
-  document.getElementById('form-signup').style.display=isL?'none':'';
-  document.getElementById('auth-err').classList.remove('show');
-}
-function authErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.classList.add('show')}
-async function doLogin(){
-  const u=document.getElementById('li-u').value.trim().toLowerCase();
-  const p=document.getElementById('li-p').value;
-  if(!u||!p)return authErr('Please fill in all fields.');
-  setLoad(true,'Signing in…');
-  const d=await uVerify(u,p);
-  setLoad(false);
-  if(!d)return authErr('Invalid username or password.');
-  await loginOk(d);
-}
-// Blocklist of known disposable/temp mail domains
-const TEMP_DOMAINS=new Set(['mailinator.com','guerrillamail.com','guerrillamail.net','guerrillamail.org','guerrillamail.de','guerrillamail.biz','guerrillamail.info','sharklasers.com','guerrillamailblock.com','grr.la','guerrillamailblocked.com','spam4.me','yopmail.com','yopmail.fr','cool.fr.nf','jetable.fr.nf','nospam.ze.tc','nomail.xl.cx','mega.zik.dj','speed.1s.fr','courriel.fr.nf','moncourrier.fr.nf','monemail.fr.nf','monmail.fr.nf','trashmail.at','trashmail.io','trashmail.me','trashmail.net','trashmail.xyz','trashmail.com','dispostable.com','mailnull.com','throwam.com','throwam.net','spamgourmet.com','spamgourmet.net','spamgourmet.org','fakeinbox.com','maildrop.cc','discard.email','spamfree24.org','spam.la','throwam.com','tempmail.com','tempmail.net','temp-mail.org','temp-mail.io','tempmailo.com','tmailinator.com','throwaway.email','throwam.com','getairmail.com','filzmail.com','owlpic.com','crazymailing.com','emltmp.com','tmail.io','spamhereplease.com','spam.care','binkmail.com','bob.email','explodemail.com','fastacura.com','fastchevy.com','fastchrysler.com','fastkawasaki.com','fastmazda.com','fastmitsubishi.com','fastnissan.com','fastsubaru.com','fastsuzuki.com','fasttoyota.com','fastyamaha.com','garbagemail.org','get1mail.com','getonemail.com','girlsundertheinfluence.com','gishpuppy.com','great-host.in','gsrv.co.uk','gustr.com','h.mintemail.com','hailmail.net','hatespam.org','herp.in','hidemail.de','hidzz.com','hmamail.com','hopemail.biz','ieh-mail.de','ihateyoualot.info','iheartspam.org','imails.info','inoutmail.de','inoutmail.eu','inoutmail.info','inoutmail.net','insorg.org','instant-mail.de','internetemails.net','inwind.it','ipa.go.jp','irc.so','jetable.com','jetable.de','jetable.net','jetable.org','jnxjn.com','jourrapide.com','jsrsolutions.com','junk.to','just4fun.dk','keepmymail.com','killmail.com','killmail.net','klassmaster.com','klzlk.com','koszmail.pl','kurzepost.de','letthemeatspam.com','lhsdv.com','lifebyfood.com','link2mail.net','litedrop.com','lol.ovpn.to','lolfreak.net','lookugly.com','lortemail.dk','lr78.com','lroid.com','lukop.dk','m21.cc','mail-filter.com','mail-temporaire.fr','mail.by','mail.mezimages.net','mail.zp.ua','mail1a.de','mail21.cc','mail2rss.org','mail333.com','mailblocks.com','mailbolt.com','mailc.net','mailcat.biz','mailcatch.com','mailchi.mp','maildx.com','maileater.com','mailexpire.com','mailf5.com','mailfall.com','mailfreeonline.com','mailfs.com','mailguard.me','mailimate.com','mailin8r.com','mailinater.com','mailismagic.com','mailme.lv','mailme24.com','mailmetrash.com','mailmoat.com','mailnew.com','mailnull.com','mailpick.biz','mailproxsy.com','mailrock.biz','mailsac.com','mailscrap.com','mailshell.com','mailsiphon.com','mailslite.com','mailTemp.info','mailzilla.com','makemetheking.com','meltmail.com','mierdamail.com','mintemail.com','moburl.com','moncourrier.fr.nf','monemail.fr.nf','monmail.fr.nf','msa.minsmail.com','mt2009.com','mt2014.com','muimail.com','mx0.wwwnew.eu','my10minutemail.com','mymail-in.net','myrealbox.com','myspaceinc.com','myspaceinc.net','myspaceinc.org','myspacepimpedup.com','myspamless.com','mytempemail.com','mytrashmail.com','nabuma.com','neomailbox.com','nepwk.com','nervmich.net','nervtmich.net','netpranks.com','netzidiot.de','newbpotato.tk','nezdiro.org','nguyenusedcars.com','niepodam.pl','nigge.rs','nmo.kr','noblepioneer.com','nobulk.com','noclickemail.com','nomail.pw','nomail.xl.cx','nomail2me.com','nomorespamemails.com','nonspam.eu','nonspammer.de','noref.in','nospamfor.us','nospamthanks.info','notmailinator.com','nowmymail.com','ntlhelp.net','nullbox.info','nwldx.com','o2.co.uk','o2business.co.uk','odaymail.com','odnorazovoe.ru','ohaaa.de','omail.pro','oneoffemail.com','oneoffmail.com','onewaymail.com','online.ms','oopi.org','opayq.com','opentrash.com','ordinaryamerican.net','originalsalsateam.com','outlawspam.com','owlpic.com','pancakemail.com','paplease.com','pecinan.com','pecinan.net','pecinan.org','pepbot.com','peterdethier.com','physicsalumni.com','pilpres2018.com','pjjkp.com','plexolan.de','poczta.onet.pl','pojok.ml','politikerclub.de','popesodomy.com','poplk.com','postacin.com','powered.name','proxymail.eu','prtnx.com','prtz.eu','punkass.com','put2.net','putthisinyourspamdatabase.com','qabq.com','quickinbox.com','rcpt.at','reallymymail.com','reconmail.com','recursor.net','recycler.com','regbypass.com','regbypass.comsafe-mail.net','rejectmail.com','rklips.com','rmqkr.net','rofl.cash','rolfemails.de','romantxxx.com','rotaniliam.com','royal.net','rppkn.com','rtrtr.com','s0ny.net','safe-mail.net','safersignup.de','safetymail.info','safetypost.de','sandelf.de','schachrol.com','schafmail.de','schrott-email.de','secretemail.de','secure-mail.biz','selfdestructingmail.com','senseles.com','services391.com','sharedmailbox.org','shieldemail.com','shiftmail.com','shitmail.de','shitmail.me','shitmail.org','shitware.nl','shortmail.net','sibmail.com','singlespeak.com','skeefmail.com','slapsfromlastnight.com','slaskpost.se','slipry.net','slopsbox.com','slowslow.de','smellfear.com','smellrear.com','smileyface.com','smoug.net','snakemail.com','sneakemail.com','sneakmail.de','snkmail.com','sofimail.com','sofort-mail.de','sogetthis.com','soodo.com','spam.la','spam.su','spam4.me','spamavert.com','spambob.com','spambob.net','spambob.org','spambog.com','spambog.de','spambog.ru','spambooger.com','spambox.info','spambox.irishspringrealty.com','spambox.us','spamcannon.com','spamcannon.net','spamcero.com','spamcon.org','spamcorptastic.com','spamcowboy.com','spamcowboy.net','spamcowboy.org','spamday.com','spamex.com','spamfree.eu','spamfree24.de','spamfree24.eu','spamfree24.info','spamfree24.net','spamfree24.org','spamgoes.in','spamgourmet.com','spamgourmet.net','spamgourmet.org','spamherelots.com','spamhereplease.com','spamhole.com','spamify.com','spaminator.de','spamkill.info','spaml.com','spaml.de','spammotel.com','spammy.host','spamoff.de','spampass.info','spampost.info','spamserver.de','spamserver2.de','spamslicer.com','spamspot.com','spamstack.net','spamthis.co.uk','spamthisplease.com','spamtroll.net','spamwc.de','speed.1s.fr','spikio.com','spoofmail.de','squizzy.de','squizzy.eu','squizzy.net','startkeys.com','statdvr.com','stexsy.com','stinkefinger.net','stop-my-spam.com','strapmail.com','suburbanthug.com','supergreatmail.com','supermailer.jp','superrito.com','superstachel.de','suremail.info','svk.jp','sweetxxx.de','tafmail.com','tagyourself.com','taglead.com','takuyakimura.com','teleworm.com','teleworm.us','tempalias.com','tempe-mail.com','tempemail.biz','tempemail.co.za','tempemail.com','tempemail.net','tempemail.us','tempinbox.co.uk','tempinbox.com','temporaryemail.net','tempsky.com','tempthe.net','thanksnospam.info','thecloudindex.com','thisisnotmyrealemail.com','throam.com','throwam.com','throwam.net','throwaway.email','throwammail.com','tilien.com','tittbit.in','tmail.com','tmail.io','tmail.ws','tmailinator.com','toiea.com','tradermail.info','trash-amil.com','trash-mail.at','trash-mail.cf','trash-mail.com','trash-mail.de','trash-mail.ga','trash-mail.gq','trash-mail.io','trash-mail.ml','trash-mail.tk','trashdevil.com','trashdevil.de','trashemail.de','trashmail.app','trashmail.at','trashmail.com','trashmail.de','trashmail.fr','trashmail.io','trashmail.me','trashmail.net','trashmail.org','trashmail.se','trashmail.xyz','trashmailer.com','trashspam.com','trasz.com','trbvm.com','trbvn.com','trbvo.com','trillianpro.com','trimix.cn','trmailbox.com','trollmail.de','tropicalbass.info','ttirv.com','ttirv.net','ttirv.org','turual.com','twinmail.de','tyldd.com','ubm.md','uggsrock.com','umail.net','unmail.ru','upliftnow.com','uroid.com','uroid.net','used.hu','username.e4ward.com','venompen.com','veryrealemail.com','viditag.com','viewcastmedia.com','viewcastmedia.net','viewcastmedia.org','vipmail.name','vomoto.com','vpn.st','vsimcard.com','vubby.com','walala.org','walkmail.net','watchfull.net','webemail.me','weg-werf-email.de','wegwerf-email-adresse.de','wegwerf-emails.de','wegwerfadresse.de','wegwerfemail.com','wegwerfemail.de','wegwerfmail.de','wegwerfmail.info','wegwerfmail.net','wegwerfmail.org','wetrainbayarea.com','wetrainbayarea.org','wh4f.org','whopy.com','wilemail.com','willhackforfood.biz','willselfdestruct.com','winemaven.info','wronghead.com','wuzup.net','wuzupmail.net','xagloo.com','xemaps.com','xents.com','xmaily.com','xoxy.net','xww.ro','xyzfree.net','yanet.me','yapped.net','yeah.net','yep.it','yogamaven.com','yopmail.com','yopmail.fr','yopmail.gq','yopmail.net','yopmail.pp.ua','yourdomain.com','ypmail.webarnak.fr.eu.org','yuurok.com','z1p.biz','za.com','zehnminuten.de','zehnminutenmail.de','zippymail.info','zoaxe.com','zoemail.net','zoemail.org','zoemail.com','zomg.info']);
-
-function isValidEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  if (!re.test(email)) return {ok:false, msg:'Please enter a valid email address.'};
-  const domain = email.split('@')[1].toLowerCase();
-  if (TEMP_DOMAINS.has(domain)) return {ok:false, msg:'Temporary/disposable email addresses are not allowed. Please use a real email (Gmail, Outlook, Yahoo, etc.).'};
-  return {ok:true};
+  document.getElementById('form-register').style.display=isL?'none':'';
+  if(!isL) showRegStep(1);
 }
 
-async function doSignup(){
-  const u=document.getElementById('su-u').value.trim().toLowerCase().replace(/\s+/g,'_');
-  const n=document.getElementById('su-n').value.trim();
-  const e=document.getElementById('su-e').value.trim().toLowerCase();
-  const ph=document.getElementById('su-ph').value.trim();
-  const p=document.getElementById('su-p').value;
-  if(!u||!n||!e||!p)return authErr('Please fill in all required fields.');
-  if(u.length<3)return authErr('Username must be at least 3 characters.');
-  if(p.length<6)return authErr('Password must be at least 6 characters.');
-  const ev=isValidEmail(e);
+function showRegStep(n){
+  document.getElementById('reg-step1').classList.toggle('active',n===1);
+  document.getElementById('reg-step2').classList.toggle('active',n===2);
+  document.getElementById('sdot1').className='step-dot'+(n>=1?' active':'')+(n>1?' done':'');
+  document.getElementById('sdot2').className='step-dot'+(n>=2?' active':'');
+  document.getElementById('sline1').className='step-line'+(n>1?' done':'');
+}
+function regBack(){clearErr();showRegStep(1)}
+
+function regStep1Next(){
+  clearErr();
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim().toLowerCase();
+  const pass=document.getElementById('r-pass').value;
+  const conf=document.getElementById('r-confirm').value;
+  if(!name||!email||!pass||!conf)return authErr('Please fill in all fields.');
+  const ev=isValidEmail(email);
   if(!ev.ok)return authErr(ev.msg);
-  setLoad(true,'Creating account…');
-  const ex=await uExists(u);
-  if(ex){setLoad(false);return authErr('That username is already taken.')}
-  await uCreate(u,n,e,ph,p);
-  await loginOk({username:u,displayName:n,email:e,phone:ph});
+  if(pass.length<6)return authErr('Password must be at least 6 characters.');
+  if(pass!==conf)return authErr('Passwords do not match.');
+  showRegStep(2);
 }
-async function loginOk(u){
-  user=u;
-  localStorage.setItem('cl_sess',JSON.stringify(u));
+
+// ── SUPABASE LOGIN ──
+async function doLogin(){
+  clearErr();
+  const email=document.getElementById('li-email').value.trim().toLowerCase();
+  const pass=document.getElementById('li-pass').value;
+  if(!email||!pass)return authErr('Please enter your email and password.');
+  const btn=document.getElementById('btn-login');
+  btn.disabled=true; btn.textContent='Signing in…';
+  setLoad(true,'Signing in…');
+
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  setLoad(false); btn.disabled=false; btn.textContent='Sign In →';
+
+  if(error){
+    if(error.message.includes('Invalid login'))return authErr('Incorrect email or password.');
+    if(error.message.includes('Email not confirmed'))return authErr('Please confirm your email first — check your inbox.');
+    return authErr(error.message);
+  }
+  await afterLogin(data.user);
+}
+
+// ── SUPABASE REGISTER ──
+async function doRegister(){
+  clearErr();
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim().toLowerCase();
+  const pass=document.getElementById('r-pass').value;
+  const username=document.getElementById('r-user').value.trim().toLowerCase().replace(/\s+/g,'_')||name.split(' ')[0].toLowerCase();
+  const phone=document.getElementById('r-phone').value.trim();
+
+  const btn=document.getElementById('btn-register');
+  btn.disabled=true; btn.textContent='Creating…';
+  setLoad(true,'Creating your account…');
+
+  const {data,error}=await sb.auth.signUp({
+    email, password: pass,
+    options:{
+      data:{full_name:name, username, phone_number:phone}
+    }
+  });
+
+  setLoad(false); btn.disabled=false; btn.textContent='Create Account';
+
+  if(error){
+    if(error.message.includes('already registered'))return authErr('That email is already registered. Try signing in.');
+    return authErr(error.message);
+  }
+
+  // Show success — Supabase sends a confirmation email
+  showToast('🎉 Account created! Check your email to confirm, then sign in.',5000);
+  switchTab('login');
+  document.getElementById('li-email').value=email;
+}
+
+// ── AFTER LOGIN ──
+async function afterLogin(user){
+  currentUser=user;
+  const meta=user.user_metadata||{};
+  const displayName=meta.full_name||meta.username||user.email.split('@')[0];
+  document.getElementById('top-un').textContent=displayName;
+  document.getElementById('top-av').textContent=ini(displayName);
+
   setLoad(true,'Loading your cards…');
-  const saved=await rLoad(u.username);
-  if(saved){cards=saved.cards||[];hidKpis=saved.hidKpis||{};hidCards=saved.hidCards||{}}
-  else{cards=defCards();hidKpis={};hidCards={}}
+  await loadData(user.id);
   setLoad(false);
-  document.getElementById('top-un').textContent=u.displayName||u.username;
-  document.getElementById('top-av').textContent=ini(u.displayName||u.username);
   showSc('screen-app');
   render();
 }
-function doLogout(){closeModals();user=null;localStorage.removeItem('cl_sess');cards=[];showSc('screen-auth')}
+
+function doLogout(){
+  closeModals();
+  sb.auth.signOut();
+  currentUser=null; cards=[]; hidKpis={}; hidCards={};
+  showSc('screen-auth');
+  showToast('Signed out');
+}
 function showLogout(){document.getElementById('lo-modal').classList.add('open')}
 
+// ── REMOTE DATA (Supabase DB) ──
+// Stores each user's cards blob in a 'user_data' table:
+//   id (uuid, pk), user_id (uuid), cards (jsonb), hidden_kpis (jsonb), hidden_cards (jsonb)
+// Create it in Supabase SQL editor:
+//   create table user_data (
+//     id uuid default gen_random_uuid() primary key,
+//     user_id uuid references auth.users not null unique,
+//     cards jsonb default '[]',
+//     hidden_kpis jsonb default '{}',
+//     hidden_cards jsonb default '{}',
+//     updated_at timestamptz default now()
+//   );
+//   alter table user_data enable row level security;
+//   create policy "Users own data" on user_data for all using (auth.uid() = user_id);
+
+async function loadData(uid){
+  const{data,error}=await sb.from('user_data').select('*').eq('user_id',uid).maybeSingle();
+  if(data){
+    cards=data.cards||[];
+    hidKpis=data.hidden_kpis||{};
+    hidCards=data.hidden_cards||{};
+  } else {
+    cards=defCards(); hidKpis={}; hidCards={};
+    await saveData(uid);
+  }
+}
+
+async function saveData(uid){
+  if(!uid&&!currentUser)return;
+  const id=uid||(currentUser&&currentUser.id);
+  await sb.from('user_data').upsert({
+    user_id:id, cards, hidden_kpis:hidKpis, hidden_cards:hidCards,
+    updated_at:new Date().toISOString()
+  },{onConflict:'user_id'});
+}
+
+function sched(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{if(currentUser)saveData()},800);
+}
+
+// ── DEFAULT CARDS ──
 function defCards(){return[
   {id:uid(),name:'Rogers',        note:'Phone bill · Large purchases',    limit:0,spent:200},
   {id:uid(),name:'CIBC',          note:'Gas · Daily living',              limit:0,spent:300},
@@ -384,10 +583,7 @@ function defCards(){return[
   {id:uid(),name:'Capital One',   note:'Apple subscriptions',             limit:0,spent:38},
 ]}
 
-// save
-function sched(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{if(user)await rSave(user.username,{cards,hidKpis,hidCards})},700)}
-
-// render
+// ── RENDER ──
 function sorted(){return[...cards].sort((a,b)=>(+b.limit||0)-(+a.limit||0))}
 function render(){renderCards();renderKPIs();renderChart()}
 
@@ -453,10 +649,9 @@ function renderChart(){
   }).join('');
 }
 
-// actions
+// ── CARD ACTIONS ──
 function upd(id,f,v){
-  const c=cards.find(x=>x.id===id);
-  if(!c)return;
+  const c=cards.find(x=>x.id===id);if(!c)return;
   c[f]=f==='limit'||f==='spent'?+v||0:v;
   render();sched();
 }
@@ -473,25 +668,35 @@ function toggleCardHide(id){hidCards[id]=!hidCards[id];render();sched()}
 function toggleKpi(k){hidKpis[k]=!hidKpis[k];renderKPIs();sched()}
 function toggleAllHide(){const all=cards.every(c=>hidCards[c.id]);cards.forEach(c=>hidCards[c.id]=!all);render();sched();showToast(all?'Balances shown':'Balances hidden')}
 
-// boot
+// ── BOOT ──
 (async()=>{
-  const sess=localStorage.getItem('cl_sess');
-  if(sess){
-    try{
-      const u=JSON.parse(sess);
-      const check=await uExists(u.username);
-      if(check){await loginOk(check);return}
-    }catch{}
-    localStorage.removeItem('cl_sess');
+  // Check if Supabase keys are configured
+  if(SUPABASE_URL==='YOUR_SUPABASE_URL_PLACEHOLDER'){
+    setLoad(false);
+    showSc('screen-auth');
+    document.getElementById('auth-err').textContent='⚙️ Setup needed: Open index.html and replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY with your Supabase project values.';
+    document.getElementById('auth-err').classList.add('show');
+    return;
   }
-  setLoad(false);showSc('screen-auth');
-})();
 
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Enter')return;
-  const isLogin=document.getElementById('form-login').style.display!=='none';
-  isLogin?doLogin():doSignup();
-});
+  // Listen for auth state changes (handles session restore on page reload)
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session?.user){
+      await afterLogin(session.user);
+    } else if(event==='SIGNED_OUT'){
+      setLoad(false);
+      showSc('screen-auth');
+    }
+  });
+
+  // Check for existing session
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){
+    setLoad(false);
+    showSc('screen-auth');
+  }
+  // If session exists, onAuthStateChange will fire SIGNED_IN
+})();
 </script>
 </body>
 </html>
