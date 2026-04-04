@@ -290,6 +290,50 @@ tbody tr:hover{background:#fafbff}
 .hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:9}
 
+/* ── PROFILE POPUP ── */
+.profile-popup-bg{display:none;position:fixed;inset:0;z-index:150;align-items:flex-end;justify-content:flex-start;padding:0 0 80px 16px}
+.profile-popup-bg.open{display:flex}
+.profile-popup{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:300px;
+  box-shadow:0 20px 60px rgba(0,0,0,.18),0 4px 16px rgba(0,0,0,.08);
+  overflow:hidden;animation:popupIn .2s ease}
+@keyframes popupIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.pp-header{background:linear-gradient(135deg,#1a1d2e 0%,#2d2060 100%);padding:22px 20px 18px;position:relative}
+.pp-header::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;
+  background:rgba(108,99,255,.25);top:-50px;right:-30px;filter:blur(40px);pointer-events:none}
+.pp-avatar{width:60px;height:60px;border-radius:50%;
+  background:linear-gradient(135deg,#6c63ff,#a78bfa);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;color:#fff;
+  margin-bottom:12px;overflow:hidden;
+  border:3px solid rgba(255,255,255,.2);flex-shrink:0}
+.pp-avatar img{width:100%;height:100%;object-fit:cover}
+.pp-name{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px;margin-bottom:2px}
+.pp-username{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px}
+.pp-email-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.15);border-radius:99px;
+  padding:3px 10px;font-size:11.5px;color:rgba(255,255,255,.8)}
+.pp-body{padding:16px 20px}
+.pp-section{margin-bottom:14px}
+.pp-section:last-child{margin-bottom:0}
+.pp-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);margin-bottom:8px}
+.pp-row{display:flex;align-items:center;gap:10px;padding:6px 0;
+  border-bottom:1px solid var(--surface2);font-size:13px}
+.pp-row:last-child{border-bottom:none}
+.pp-row-ico{font-size:15px;width:22px;text-align:center;flex-shrink:0}
+.pp-row-label{font-size:11px;color:var(--muted);width:68px;flex-shrink:0}
+.pp-row-val{font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp-row-val.empty{color:var(--muted);font-weight:400;font-style:italic}
+.pp-footer{border-top:1px solid var(--border);padding:12px 20px;display:flex;gap:8px}
+.pp-btn{flex:1;padding:9px 10px;border-radius:10px;border:none;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;text-align:center}
+.pp-btn.primary{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(108,99,255,.3)}
+.pp-btn.primary:hover{opacity:.88}
+.pp-btn.ghost{background:var(--surface2);color:var(--muted)}
+.pp-btn.ghost:hover{background:var(--border);color:var(--text)}
+.pp-btn.danger{background:var(--red-lt);color:var(--red)}
+.pp-btn.danger:hover{background:var(--red);color:#fff}
+
 /* ── RESPONSIVE ── */
 @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.bottom-grid{grid-template-columns:1fr}.analytics-grid{grid-template-columns:1fr}}
 @media(max-width:860px){
@@ -386,7 +430,7 @@ tbody tr:hover{background:#fafbff}
     <button class="nav-item" id="nav-settings" onclick="navTo('settings')"><span class="ico">⚙️</span>Settings</button>
     <button class="nav-item" id="nav-logout" onclick="showLogoutModal()"><span class="ico">🚪</span>Sign Out</button>
     <div class="sidebar-footer">
-      <div class="user-chip" onclick="navTo('settings')">
+      <div class="user-chip" onclick="openProfilePopup()" title="View profile">
         <div class="avatar" id="sb-av" style="overflow:hidden">
           <img id="sb-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover"/>
           <span id="sb-av-initials">?</span>
@@ -395,6 +439,7 @@ tbody tr:hover{background:#fafbff}
           <div class="name" id="sb-name">—</div>
           <div class="sub" id="sb-email">—</div>
         </div>
+        <span style="margin-left:auto;font-size:11px;color:var(--muted)">›</span>
       </div>
     </div>
   </aside>
@@ -710,6 +755,80 @@ tbody tr:hover{background:#fafbff}
 </div>
 
 <div class="toast" id="toastEl"></div>
+
+<!-- ══ PROFILE POPUP ══ -->
+<div class="profile-popup-bg" id="profile-popup-bg" onclick="closeProfilePopup(event)">
+  <div class="profile-popup" id="profile-popup">
+    <!-- Header -->
+    <div class="pp-header">
+      <div class="pp-avatar" id="pp-avatar">
+        <img id="pp-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover"/>
+        <span id="pp-avatar-initials">?</span>
+      </div>
+      <div class="pp-name" id="pp-name">—</div>
+      <div class="pp-username" id="pp-username"></div>
+      <div class="pp-email-badge">✉️ <span id="pp-email">—</span></div>
+    </div>
+
+    <!-- Body -->
+    <div class="pp-body">
+
+      <!-- Contact info -->
+      <div class="pp-section">
+        <div class="pp-section-label">Contact</div>
+        <div class="pp-row">
+          <span class="pp-row-ico">📱</span>
+          <span class="pp-row-label">Phone</span>
+          <span class="pp-row-val" id="pp-phone">—</span>
+        </div>
+        <div class="pp-row">
+          <span class="pp-row-ico">📍</span>
+          <span class="pp-row-label">Address</span>
+          <span class="pp-row-val" id="pp-address">—</span>
+        </div>
+        <div class="pp-row">
+          <span class="pp-row-ico">🌍</span>
+          <span class="pp-row-label">Location</span>
+          <span class="pp-row-val" id="pp-location">—</span>
+        </div>
+      </div>
+
+      <!-- Financial profile -->
+      <div class="pp-section">
+        <div class="pp-section-label">Financial Profile</div>
+        <div class="pp-row">
+          <span class="pp-row-ico">💼</span>
+          <span class="pp-row-label">Employment</span>
+          <span class="pp-row-val" id="pp-employment">—</span>
+        </div>
+        <div class="pp-row">
+          <span class="pp-row-ico">💰</span>
+          <span class="pp-row-label">Income</span>
+          <span class="pp-row-val" id="pp-income">—</span>
+        </div>
+        <div class="pp-row">
+          <span class="pp-row-ico">💳</span>
+          <span class="pp-row-label">Cards</span>
+          <span class="pp-row-val" id="pp-cards">—</span>
+        </div>
+      </div>
+
+      <!-- Credit scores summary -->
+      <div class="pp-section" id="pp-scores-section">
+        <div class="pp-section-label">Credit Scores</div>
+        <div id="pp-scores-list"></div>
+      </div>
+
+    </div>
+
+    <!-- Footer actions -->
+    <div class="pp-footer">
+      <button class="pp-btn primary" onclick="closeProfilePopup();navTo('settings')">✏️ Edit Profile</button>
+      <button class="pp-btn ghost" onclick="closeProfilePopup();navTo('creditscore')">🏆 Scores</button>
+      <button class="pp-btn danger" onclick="closeProfilePopup();showLogoutModal()">🚪</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ══ SUPABASE CONFIG ══
@@ -1454,6 +1573,92 @@ function setFactor(key,val,pct,color,impact){
   if(fill){fill.style.width=pct+'%';fill.style.background=color;}
   if(valEl)valEl.textContent=val;
   if(impEl){impEl.textContent=impact;impEl.style.color=color;}
+}
+
+// ══ PROFILE POPUP ══
+function openProfilePopup(){
+  // Populate from profileData + currentUser
+  const meta = currentUser?.user_metadata || {};
+  const name = profileData.full_name || meta.full_name || currentUser?.email?.split('@')[0] || '—';
+  const username = profileData.username || meta.username || '';
+  const email = currentUser?.email || '—';
+  const phone = profileData.phone_number || meta.phone_number || '';
+  const street = profileData.street || '';
+  const city = profileData.city || '';
+  const province = profileData.province || '';
+  const postal = profileData.postal || '';
+  const country = profileData.country || '';
+  const employment = profileData.employment || '';
+  const income = profileData.income || '';
+  const photoUrl = profileData.photo_url || '';
+
+  // Avatar
+  const ppImg = document.getElementById('pp-avatar-img');
+  const ppInit = document.getElementById('pp-avatar-initials');
+  if(photoUrl){ ppImg.src=photoUrl; ppImg.style.display='block'; ppInit.style.display='none'; }
+  else { ppImg.style.display='none'; ppInit.style.display=''; ppInit.textContent=ini(name); }
+
+  document.getElementById('pp-name').textContent = name;
+  document.getElementById('pp-username').textContent = username ? '@'+username : '';
+  document.getElementById('pp-email').textContent = email;
+
+  // Phone
+  const ppPhone = document.getElementById('pp-phone');
+  ppPhone.textContent = phone || 'Not set';
+  ppPhone.className = 'pp-row-val' + (phone?'':' empty');
+
+  // Address
+  const addrLine = [street].filter(Boolean).join(', ');
+  const ppAddr = document.getElementById('pp-address');
+  ppAddr.textContent = addrLine || 'Not set';
+  ppAddr.className = 'pp-row-val' + (addrLine?'':' empty');
+
+  // City, Province, Country
+  const locParts = [city, province, postal, country].filter(Boolean);
+  const ppLoc = document.getElementById('pp-location');
+  ppLoc.textContent = locParts.join(', ') || 'Not set';
+  ppLoc.className = 'pp-row-val' + (locParts.length?'':' empty');
+
+  // Employment
+  const ppEmp = document.getElementById('pp-employment');
+  ppEmp.textContent = employment || 'Not set';
+  ppEmp.className = 'pp-row-val' + (employment?'':' empty');
+
+  // Income
+  const ppInc = document.getElementById('pp-income');
+  if(income){ ppInc.textContent = '$'+Number(income).toLocaleString('en-CA')+' /yr'; ppInc.className='pp-row-val'; }
+  else { ppInc.textContent='Not set'; ppInc.className='pp-row-val empty'; }
+
+  // Cards count + utilization
+  let tL=0,tS=0; cards.forEach(c=>{tL+=+c.limit||0;tS+=+c.spent||0;});
+  const utilPct = tL>0?((tS/tL)*100).toFixed(1)+'%':'—';
+  document.getElementById('pp-cards').textContent = cards.length+' card'+(cards.length!==1?'s':'')+' · '+utilPct+' util';
+
+  // Credit scores list
+  const scoresList = document.getElementById('pp-scores-list');
+  const scoresSection = document.getElementById('pp-scores-section');
+  if(creditScores && creditScores.length){
+    scoresSection.style.display='';
+    scoresList.innerHTML = creditScores.map(s=>{
+      const c = scoreColor(s.score);
+      const r = scoreRating(s.score);
+      return `<div class="pp-row">
+        <span class="pp-row-ico">🏆</span>
+        <span class="pp-row-label">${esc(s.source)}</span>
+        <span class="pp-row-val" style="color:${c};font-size:14px;font-weight:800">${s.score} <span style="font-size:11px;font-weight:500;color:${c}">${r}</span></span>
+      </div>`;
+    }).join('');
+  } else {
+    scoresSection.style.display='none';
+  }
+
+  document.getElementById('profile-popup-bg').classList.add('open');
+  closeSB();
+}
+
+function closeProfilePopup(e){
+  if(e && document.getElementById('profile-popup').contains(e.target)) return;
+  document.getElementById('profile-popup-bg').classList.remove('open');
 }
 
 // ══ BOOT ══
