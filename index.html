@@ -239,24 +239,34 @@ tbody tr:hover{background:#fafbff}
 .photo-uploading{font-size:12px;color:var(--muted);margin-top:4px;display:none}
 
 /* ── CREDIT SCORE PAGE ── */
-.score-hero{background:linear-gradient(135deg,#1a1d2e 0%,#2d2060 100%);border-radius:var(--r);padding:32px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden}
-.score-hero::before{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(108,99,255,.2);top:-80px;right:-60px;filter:blur(60px)}
-.score-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:14px}
-.score-hero-title{font-size:13px;font-weight:600;opacity:.7;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.score-num{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1}
-.score-range{font-size:12px;opacity:.5;margin-top:4px}
-.score-ring-wrap{flex-shrink:0}
-.score-ring{width:100px;height:100px;position:relative}
-.score-ring svg{transform:rotate(-90deg)}
-.ring-bg-c{fill:none;stroke:rgba(255,255,255,.1);stroke-width:8}
-.ring-val-c{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
-.score-ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;opacity:.7;flex-direction:column;text-align:center}
-.score-badges{display:flex;gap:10px;flex-wrap:wrap}
-.score-badge-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:99px;padding:5px 14px;font-size:12px;font-weight:600}
-.score-badge-pill.green{background:rgba(18,183,106,.2);border-color:rgba(18,183,106,.4);color:#4ddc95}
-.score-badge-pill.amber{background:rgba(247,144,9,.2);border-color:rgba(247,144,9,.4);color:#fbbf24}
-.score-badge-pill.red{background:rgba(240,68,56,.2);border-color:rgba(240,68,56,.4);color:#fb7185}
+/* score cards grid — one per source */
+.score-cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.score-source-card{background:linear-gradient(135deg,#1a1d2e 0%,#252a45 100%);border-radius:var(--r);padding:22px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.score-source-card::before{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(108,99,255,.15);top:-50px;right:-40px;filter:blur(40px);pointer-events:none}
+.ssc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.ssc-source-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;opacity:.6}
+.ssc-actions{display:flex;gap:6px}
+.ssc-edit-btn,.ssc-del-btn{width:26px;height:26px;border-radius:6px;border:none;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all .15s;background:rgba(255,255,255,.1)}
+.ssc-edit-btn:hover{background:rgba(108,99,255,.4)}
+.ssc-del-btn:hover{background:rgba(240,68,56,.4)}
+.ssc-ring-wrap{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.ssc-ring{width:80px;height:80px;position:relative;flex-shrink:0}
+.ssc-ring svg{transform:rotate(-90deg)}
+.ssc-ring-bg{fill:none;stroke:rgba(255,255,255,.1);stroke-width:7}
+.ssc-ring-val{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
+.ssc-ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+.ssc-ring-num{font-size:18px;font-weight:800;line-height:1}
+.ssc-ring-sub{font-size:8px;opacity:.5;margin-top:1px}
+.ssc-info .ssc-num{font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1}
+.ssc-info .ssc-range{font-size:10px;opacity:.5;margin-top:2px}
+.ssc-rating{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:4px 11px;font-size:11.5px;font-weight:700;margin-top:8px}
+.ssc-date{font-size:10.5px;opacity:.45;margin-top:6px}
+.score-empty-state{background:var(--surface);border:2px dashed var(--border);border-radius:var(--r);padding:40px;text-align:center;color:var(--muted);margin-bottom:24px}
+.score-empty-state .sei{font-size:40px;margin-bottom:12px}
+.score-empty-state h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
+.score-empty-state p{font-size:13px;margin-bottom:0}
 
+/* factors */
 .score-factors-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
 .factor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow-sm)}
 .factor-card h4{font-size:13px;font-weight:700;margin-bottom:4px}
@@ -265,9 +275,10 @@ tbody tr:hover{background:#fafbff}
 .factor-fill{height:100%;border-radius:99px;transition:width .8s ease}
 .factor-val{font-size:12px;font-weight:600;display:flex;justify-content:space-between}
 
-.score-input-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--shadow-sm)}
-.score-input-panel h3{font-size:15px;font-weight:700;margin-bottom:6px}
-.score-input-panel .sp-sub{font-size:12.5px;color:var(--muted);margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+/* add/edit score form */
+.score-form-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+.score-form-panel h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.score-form-panel .sp-sub{font-size:12.5px;color:var(--muted);margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
 .score-slider-wrap{margin-bottom:18px}
 .score-slider-wrap label{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 .score-slider-wrap label span{font-size:14px;font-weight:800;color:var(--text);text-transform:none;letter-spacing:0}
@@ -578,78 +589,73 @@ tbody tr:hover{background:#fafbff}
       <!-- ══ CREDIT SCORE PAGE ══ -->
       <div class="page" id="page-creditscore">
 
-        <!-- Hero score display -->
-        <div class="score-hero">
-          <div class="score-hero-top">
-            <div>
-              <div class="score-hero-title">Your Credit Score</div>
-              <div class="score-num" id="cs-score">—</div>
-              <div class="score-range">Range: 300 – 900 (Canadian scale)</div>
-              <div class="score-badges" style="margin-top:14px" id="cs-badges"></div>
-            </div>
-            <div class="score-ring-wrap">
-              <div class="score-ring">
-                <svg viewBox="0 0 100 100" width="100" height="100">
-                  <circle class="ring-bg-c" cx="50" cy="50" r="42"/>
-                  <circle class="ring-val-c" id="cs-ring-fill" cx="50" cy="50" r="42" stroke="#6c63ff" stroke-dasharray="264" stroke-dashoffset="264"/>
-                </svg>
-                <div class="score-ring-label"><span id="cs-ring-pct">—</span><span style="font-size:9px;margin-top:2px">SCORE</span></div>
-              </div>
-            </div>
-          </div>
+        <!-- Per-source score cards row -->
+        <div id="cs-cards-row" class="score-cards-row"></div>
+        <div id="cs-empty-state" class="score-empty-state" style="display:none">
+          <div class="sei">🏆</div>
+          <h3>No scores added yet</h3>
+          <p>Add your credit score from Equifax, TransUnion, Borrowell, or any source below — each one gets its own card.</p>
         </div>
 
-        <!-- Factors grid -->
+        <!-- Factors -->
         <div class="score-factors-grid">
           <div class="factor-card">
             <h4>💳 Credit Utilization</h4>
-            <div class="fc-sub">Calculated from your cards — lower is better</div>
+            <div class="fc-sub">Auto-calculated from your cards</div>
             <div class="factor-bar"><div class="factor-fill" id="fc-util-fill" style="width:0%;background:var(--green)"></div></div>
             <div class="factor-val"><span id="fc-util-val">—</span><span id="fc-util-impact" style="color:var(--green)">Good</span></div>
           </div>
           <div class="factor-card">
             <h4>✅ Payment History</h4>
-            <div class="fc-sub">Set your on-time payment track record</div>
+            <div class="fc-sub">Your on-time payment track record</div>
             <div class="factor-bar"><div class="factor-fill" id="fc-pay-fill" style="width:0%;background:var(--green)"></div></div>
             <div class="factor-val"><span id="fc-pay-val">—</span><span id="fc-pay-impact" style="color:var(--green)">—</span></div>
           </div>
           <div class="factor-card">
             <h4>📅 Credit Age</h4>
-            <div class="fc-sub">Average age of your credit accounts</div>
+            <div class="fc-sub">Average age of your accounts</div>
             <div class="factor-bar"><div class="factor-fill" id="fc-age-fill" style="width:0%;background:var(--blue)"></div></div>
             <div class="factor-val"><span id="fc-age-val">—</span><span id="fc-age-impact" style="color:var(--blue)">—</span></div>
           </div>
           <div class="factor-card">
             <h4>🔢 Total Accounts</h4>
-            <div class="fc-sub">Number of open credit accounts</div>
+            <div class="fc-sub">Open credit accounts you track</div>
             <div class="factor-bar"><div class="factor-fill" id="fc-acct-fill" style="width:0%;background:var(--accent)"></div></div>
             <div class="factor-val"><span id="fc-acct-val">—</span><span id="fc-acct-impact" style="color:var(--accent)">—</span></div>
           </div>
           <div class="factor-card">
             <h4>🔍 Hard Inquiries</h4>
-            <div class="fc-sub">Recent credit applications in last 2 years</div>
+            <div class="fc-sub">Credit applications in last 2 years</div>
             <div class="factor-bar"><div class="factor-fill" id="fc-inq-fill" style="width:0%;background:var(--amber)"></div></div>
             <div class="factor-val"><span id="fc-inq-val">—</span><span id="fc-inq-impact" style="color:var(--amber)">—</span></div>
           </div>
           <div class="factor-card">
             <h4>🏦 Credit Mix</h4>
-            <div class="fc-sub">Variety of credit types (cards, loans, etc.)</div>
-            <div class="factor-bar"><div class="factor-fill" id="fc-mix-fill" style="width:0%;background:var(--violet,#8b5cf6)"></div></div>
+            <div class="fc-sub">Variety of credit types you hold</div>
+            <div class="factor-bar"><div class="factor-fill" id="fc-mix-fill" style="width:0%;background:#8b5cf6"></div></div>
             <div class="factor-val"><span id="fc-mix-val">—</span><span id="fc-mix-impact" style="color:#8b5cf6">—</span></div>
           </div>
         </div>
 
-        <!-- Manual score input -->
-        <div class="score-input-panel">
-          <h3>📝 Update Your Credit Score Details</h3>
-          <div class="sp-sub">Enter your real credit score from Equifax, TransUnion, or Borrowell — we'll show your factors and trends</div>
+        <!-- Add / Edit score form -->
+        <div class="score-form-panel">
+          <h3 id="cs-form-title">➕ Add a Credit Score</h3>
+          <div class="sp-sub">Add your score from any bureau or app — each source is tracked separately and shown as its own card above</div>
+          <input type="hidden" id="cs-editing-id"/>
           <div class="sfield-row" style="margin-bottom:16px">
-            <div class="sfield"><label>Your Credit Score</label><input id="cs-input-score" type="number" min="300" max="900" placeholder="e.g. 720" oninput="previewScore(this.value)"/></div>
+            <div class="sfield"><label>Credit Score</label>
+              <input id="cs-input-score" type="number" min="300" max="900" placeholder="e.g. 720 (300–900)"/>
+            </div>
             <div class="sfield"><label>Score Source</label>
               <select id="cs-input-source">
                 <option value="">Select source…</option>
-                <option>Equifax</option><option>TransUnion</option><option>Borrowell</option>
-                <option>Credit Karma</option><option>Mogo</option><option>Bank App</option>
+                <option>Equifax</option>
+                <option>TransUnion</option>
+                <option>Borrowell</option>
+                <option>Credit Karma</option>
+                <option>Mogo</option>
+                <option>Bank App</option>
+                <option>Other</option>
               </select>
             </div>
           </div>
@@ -666,13 +672,14 @@ tbody tr:hover{background:#fafbff}
             <input type="range" class="score-slider" id="sl-inq" min="0" max="20" value="0" oninput="document.getElementById('sl-inq-val').textContent=this.value;updateScoreFactors()"/>
           </div>
           <div class="score-slider-wrap">
-            <label>Credit Mix Score <span id="sl-mix-val">Good</span></label>
+            <label>Credit Mix <span id="sl-mix-val">Good</span></label>
             <input type="range" class="score-slider" id="sl-mix" min="0" max="3" value="2" oninput="document.getElementById('sl-mix-val').textContent=['Poor','Fair','Good','Excellent'][this.value];updateScoreFactors()"/>
           </div>
           <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap">
-            <button class="btn-save" onclick="saveCreditScore()">💾 Save Score</button>
+            <button class="btn-save" id="cs-save-btn" onclick="saveCreditScore()">➕ Add Score</button>
+            <button class="btn-save" id="cs-cancel-btn" onclick="cancelEditScore()" style="display:none;background:var(--surface2);color:var(--text);box-shadow:none;border:1.5px solid var(--border)">Cancel</button>
           </div>
-          <div class="score-disclaimer">ℹ️ CardLens does not pull your credit report. Your score is self-reported and for personal tracking only. For your official score, check <strong>Equifax.ca</strong>, <strong>TransUnion.ca</strong>, or free services like <strong>Borrowell</strong> or <strong>Credit Karma</strong>.</div>
+          <div class="score-disclaimer">ℹ️ CardLens does not pull your credit report. Scores are self-reported for personal tracking only. Get your official score from <strong>Equifax.ca</strong>, <strong>TransUnion.ca</strong>, <strong>Borrowell</strong>, or <strong>Credit Karma</strong>.</div>
         </div>
       </div>
 
@@ -1244,125 +1251,209 @@ async function saveProfile(){
 }
 
 // ══ CREDIT SCORE ══
-let creditData = {score:null, source:'', payHistory:100, creditAge:5, inquiries:0, creditMix:2};
+// ══ CREDIT SCORES — multi-source array ══
+let creditScores = []; // [{id, source, score, payHistory, creditAge, inquiries, creditMix, date}]
 
 async function loadCreditData(){
   if(!currentUser) return;
   try {
-    const {data} = await sb.from('user_profiles').select('credit_score,credit_source,pay_history,credit_age,inquiries,credit_mix').eq('user_id',currentUser.id).maybeSingle();
-    if(data && data.credit_score){
-      creditData = {
-        score:      data.credit_score,
-        source:     data.credit_source||'',
-        payHistory: data.pay_history??100,
-        creditAge:  data.credit_age??5,
-        inquiries:  data.inquiries??0,
-        creditMix:  data.credit_mix??2
-      };
+    const {data} = await sb.from('user_profiles').select('credit_scores,pay_history,credit_age,inquiries,credit_mix').eq('user_id',currentUser.id).maybeSingle();
+    if(data){
+      creditScores = data.credit_scores || [];
+      // sync shared factor sliders from first entry if available
+      if(creditScores.length){
+        const first = creditScores[0];
+        document.getElementById('sl-pay').value   = first.payHistory ?? 100;
+        document.getElementById('sl-pay-val').textContent = (first.payHistory??100)+'%';
+        document.getElementById('sl-age').value   = first.creditAge ?? 5;
+        document.getElementById('sl-age-val').textContent = (first.creditAge??5)+' yrs';
+        document.getElementById('sl-inq').value   = first.inquiries ?? 0;
+        document.getElementById('sl-inq-val').textContent = first.inquiries ?? 0;
+        document.getElementById('sl-mix').value   = first.creditMix ?? 2;
+        document.getElementById('sl-mix-val').textContent = ['Poor','Fair','Good','Excellent'][first.creditMix??2];
+      }
     }
-  } catch(e){}
+  } catch(e){ console.error(e); }
 }
 
 function renderCreditScore(){
-  // sync sliders with saved data
-  document.getElementById('sl-pay').value = creditData.payHistory;
-  document.getElementById('sl-pay-val').textContent = creditData.payHistory+'%';
-  document.getElementById('sl-age').value = creditData.creditAge;
-  document.getElementById('sl-age-val').textContent = creditData.creditAge+' yrs';
-  document.getElementById('sl-inq').value = creditData.inquiries;
-  document.getElementById('sl-inq-val').textContent = creditData.inquiries;
-  document.getElementById('sl-mix').value = creditData.creditMix;
-  document.getElementById('sl-mix-val').textContent = ['Poor','Fair','Good','Excellent'][creditData.creditMix];
-  if(creditData.score){ document.getElementById('cs-input-score').value = creditData.score; }
-  if(creditData.source){ document.getElementById('cs-input-source').value = creditData.source; }
-  updateScoreDisplay(creditData.score);
+  renderScoreCards();
   updateScoreFactors();
 }
 
-function previewScore(v){
-  if(v>=300&&v<=900) updateScoreDisplay(+v);
+function scoreColor(s){ return s>=740?'#22d07a':s>=670?'#4f8ef7':s>=580?'#f5a623':'#f54b5e'; }
+function scoreRating(s){ return s>=800?'Exceptional':s>=740?'Very Good':s>=670?'Good':s>=580?'Fair':'Poor'; }
+function scoreRatingCls(s){ return s>=740?'green':s>=580?'amber':'red'; }
+function scoreAdvice(s){ return s>=740?'Excellent for approvals':s>=670?'Good for most products':s>=580?'Consider secured options':'Focus on credit repair'; }
+
+function renderScoreCards(){
+  const row = document.getElementById('cs-cards-row');
+  const empty = document.getElementById('cs-empty-state');
+  if(!creditScores.length){
+    row.innerHTML=''; empty.style.display='block'; return;
+  }
+  empty.style.display='none';
+  const circ = 2*Math.PI*35; // r=35 → circumference ≈ 220
+  row.innerHTML = creditScores.map((s,i) => {
+    const color = scoreColor(s.score);
+    const rating = scoreRating(s.score);
+    const cls = scoreRatingCls(s.score);
+    const pct = (s.score-300)/600;
+    const offset = circ*(1-pct);
+    const dateStr = s.date ? new Date(s.date).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}) : '—';
+    return `<div class="score-source-card">
+  <div class="ssc-header">
+    <div class="ssc-source-name">${esc(s.source||'Unknown')}</div>
+    <div class="ssc-actions">
+      <button class="ssc-edit-btn" onclick="editScore(${i})" title="Edit">✏️</button>
+      <button class="ssc-del-btn" onclick="deleteScore(${i})" title="Delete">🗑</button>
+    </div>
+  </div>
+  <div class="ssc-ring-wrap">
+    <div class="ssc-ring">
+      <svg viewBox="0 0 80 80" width="80" height="80">
+        <circle class="ssc-ring-bg" cx="40" cy="40" r="35"/>
+        <circle class="ssc-ring-val" cx="40" cy="40" r="35"
+          stroke="${color}" stroke-dasharray="${circ.toFixed(1)}"
+          stroke-dashoffset="${offset.toFixed(1)}"/>
+      </svg>
+      <div class="ssc-ring-label">
+        <span class="ssc-ring-num" style="color:${color}">${s.score}</span>
+        <span class="ssc-ring-sub">/900</span>
+      </div>
+    </div>
+    <div class="ssc-info">
+      <div class="ssc-num">${s.score}</div>
+      <div class="ssc-range">300 – 900</div>
+      <div class="ssc-rating" style="background:${color}22;color:${color};border:1px solid ${color}44">${rating}</div>
+    </div>
+  </div>
+  <div class="ssc-date">Updated ${dateStr}</div>
+  <div style="margin-top:10px;font-size:11.5px;opacity:.6">${scoreAdvice(s.score)}</div>
+</div>`;
+  }).join('');
+  // animate rings after paint
+  setTimeout(()=>{
+    document.querySelectorAll('.ssc-ring-val').forEach(el=>{
+      el.style.transition='stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)';
+    });
+  },50);
 }
 
-function updateScoreDisplay(score){
-  const el = document.getElementById('cs-score');
-  const ring = document.getElementById('cs-ring-fill');
-  const pctEl = document.getElementById('cs-ring-pct');
-  const badges = document.getElementById('cs-badges');
-  if(!score){ el.textContent='—'; pctEl.textContent='—'; badges.innerHTML=''; return; }
-  el.textContent = score;
-  const pct = (score-300)/600; // 300-900 range
-  const circ = 2*Math.PI*42;
-  ring.style.strokeDashoffset = circ*(1-pct);
-  const rating = score>=800?'Exceptional':score>=740?'Very Good':score>=670?'Good':score>=580?'Fair':'Poor';
-  const rColor = score>=740?'#22d07a':score>=670?'#4f8ef7':score>=580?'#f5a623':'#f54b5e';
-  ring.style.stroke = rColor;
-  pctEl.textContent = score;
-  const cls = score>=740?'green':score>=580?'amber':'red';
-  badges.innerHTML = `
-    <div class="score-badge-pill ${cls}">${rating}</div>
-    <div class="score-badge-pill">${score} / 900</div>
-    <div class="score-badge-pill">${score>=740?'Excellent for approval':score>=670?'Good for most cards':score>=580?'May need secured cards':'Consider credit repair'}</div>`;
+function editScore(i){
+  const s = creditScores[i];
+  document.getElementById('cs-editing-id').value = i;
+  document.getElementById('cs-input-score').value = s.score;
+  document.getElementById('cs-input-source').value = s.source||'';
+  document.getElementById('sl-pay').value   = s.payHistory??100;
+  document.getElementById('sl-pay-val').textContent = (s.payHistory??100)+'%';
+  document.getElementById('sl-age').value   = s.creditAge??5;
+  document.getElementById('sl-age-val').textContent = (s.creditAge??5)+' yrs';
+  document.getElementById('sl-inq').value   = s.inquiries??0;
+  document.getElementById('sl-inq-val').textContent = s.inquiries??0;
+  document.getElementById('sl-mix').value   = s.creditMix??2;
+  document.getElementById('sl-mix-val').textContent = ['Poor','Fair','Good','Excellent'][s.creditMix??2];
+  document.getElementById('cs-form-title').textContent = '✏️ Edit Score — '+esc(s.source||'Unknown');
+  document.getElementById('cs-save-btn').textContent = '💾 Update Score';
+  document.getElementById('cs-cancel-btn').style.display = '';
+  document.getElementById('score-form-panel')?.scrollIntoView({behavior:'smooth'});
+  document.querySelector('.score-form-panel')?.scrollIntoView({behavior:'smooth'});
+  updateScoreFactors();
 }
 
-function updateScoreFactors(){
-  // Utilization from cards
-  let tL=0,tS=0; cards.forEach(c=>{tL+=+c.limit||0;tS+=+c.spent||0});
-  const utilPct = tL>0?(tS/tL)*100:0;
-  const utilGood = utilPct<30;
-  setFactor('util', utilPct.toFixed(1)+'%', 100-Math.min(utilPct,100), utilGood?'var(--green)':'var(--red)', utilGood?'Good':'High');
-
-  const pay = +document.getElementById('sl-pay').value;
-  setFactor('pay', pay+'%', pay, pay>=95?'var(--green)':pay>=80?'var(--amber)':'var(--red)', pay>=95?'Excellent':pay>=80?'Good':'Needs work');
-
-  const age = +document.getElementById('sl-age').value;
-  const agePct = Math.min(age/20*100,100);
-  setFactor('age', age+' yrs', agePct, age>=7?'var(--green)':age>=3?'var(--blue)':'var(--amber)', age>=7?'Mature':age>=3?'Building':'New');
-
-  const accts = cards.length;
-  const acctPct = Math.min(accts/10*100,100);
-  setFactor('acct', accts+' cards', acctPct, 'var(--accent)', accts>=3?'Good mix':'Add more');
-
-  const inq = +document.getElementById('sl-inq').value;
-  const inqPct = Math.max(100-inq*15,0);
-  setFactor('inq', inq+' inquiries', inqPct, inq<=2?'var(--green)':inq<=5?'var(--amber)':'var(--red)', inq<=2?'Good':inq<=5?'Moderate':'High');
-
-  const mix = +document.getElementById('sl-mix').value;
-  setFactor('mix', ['Poor','Fair','Good','Excellent'][mix], (mix/3)*100, '#8b5cf6', ['Poor','Fair','Good','Excellent'][mix]);
+function cancelEditScore(){
+  document.getElementById('cs-editing-id').value = '';
+  document.getElementById('cs-input-score').value = '';
+  document.getElementById('cs-input-source').value = '';
+  document.getElementById('cs-form-title').textContent = '➕ Add a Credit Score';
+  document.getElementById('cs-save-btn').textContent = '➕ Add Score';
+  document.getElementById('cs-cancel-btn').style.display = 'none';
 }
 
-function setFactor(key, val, pct, color, impact){
-  const fill = document.getElementById('fc-'+key+'-fill');
-  const valEl = document.getElementById('fc-'+key+'-val');
-  const impEl = document.getElementById('fc-'+key+'-impact');
-  if(fill){ fill.style.width=pct+'%'; fill.style.background=color; }
-  if(valEl) valEl.textContent=val;
-  if(impEl){ impEl.textContent=impact; impEl.style.color=color; }
+async function deleteScore(i){
+  if(!confirm('Remove this score?')) return;
+  creditScores.splice(i,1);
+  await persistCreditScores();
+  renderScoreCards();
+  showToast('Score removed');
 }
 
 async function saveCreditScore(){
   if(!currentUser) return;
-  const score = +document.getElementById('cs-input-score').value;
-  if(!score||score<300||score>900){ showToast('Enter a valid score between 300–900'); return; }
-  creditData = {
-    score, source: document.getElementById('cs-input-source').value,
+  const scoreVal = +document.getElementById('cs-input-score').value;
+  const source   = document.getElementById('cs-input-source').value;
+  if(!scoreVal||scoreVal<300||scoreVal>900){ showToast('❌ Enter a valid score between 300–900'); return; }
+  if(!source){ showToast('❌ Please select a score source'); return; }
+
+  const entry = {
+    source,
+    score:      scoreVal,
     payHistory: +document.getElementById('sl-pay').value,
     creditAge:  +document.getElementById('sl-age').value,
     inquiries:  +document.getElementById('sl-inq').value,
-    creditMix:  +document.getElementById('sl-mix').value
+    creditMix:  +document.getElementById('sl-mix').value,
+    date:       new Date().toISOString()
   };
+
+  const editIdx = document.getElementById('cs-editing-id').value;
+  if(editIdx !== ''){
+    // Update existing
+    creditScores[+editIdx] = entry;
+    showToast('Score updated ✓');
+  } else {
+    // Check if source already exists — ask to replace or add new
+    const existing = creditScores.findIndex(s=>s.source===source);
+    if(existing>=0){
+      if(confirm(`You already have a ${source} score (${creditScores[existing].score}). Replace it with ${scoreVal}?`)){
+        creditScores[existing] = entry;
+      } else {
+        return; // user cancelled
+      }
+    } else {
+      creditScores.push(entry);
+    }
+    showToast('Score added ✓');
+  }
+
+  cancelEditScore();
+  await persistCreditScores();
+  renderScoreCards();
+  updateScoreFactors();
+}
+
+async function persistCreditScores(){
+  if(!currentUser) return;
   await sb.from('user_profiles').upsert({
     user_id: currentUser.id,
-    credit_score: score,
-    credit_source: creditData.source,
-    pay_history: creditData.payHistory,
-    credit_age: creditData.creditAge,
-    inquiries: creditData.inquiries,
-    credit_mix: creditData.creditMix,
+    credit_scores: creditScores,
     updated_at: new Date().toISOString()
   },{onConflict:'user_id'});
-  updateScoreDisplay(score);
-  updateScoreFactors();
-  showToast('Credit score saved ✓');
+}
+
+function updateScoreFactors(){
+  let tL=0,tS=0; cards.forEach(c=>{tL+=+c.limit||0;tS+=+c.spent||0});
+  const utilPct = tL>0?(tS/tL)*100:0;
+  const utilGood = utilPct<30;
+  setFactor('util',utilPct.toFixed(1)+'%',100-Math.min(utilPct,100),utilGood?'var(--green)':'var(--red)',utilGood?'Good':'High');
+  const pay=+document.getElementById('sl-pay').value;
+  setFactor('pay',pay+'%',pay,pay>=95?'var(--green)':pay>=80?'var(--amber)':'var(--red)',pay>=95?'Excellent':pay>=80?'Good':'Needs work');
+  const age=+document.getElementById('sl-age').value;
+  setFactor('age',age+' yrs',Math.min(age/20*100,100),age>=7?'var(--green)':age>=3?'var(--blue)':'var(--amber)',age>=7?'Mature':age>=3?'Building':'New');
+  const accts=cards.length;
+  setFactor('acct',accts+' cards',Math.min(accts/10*100,100),'var(--accent)',accts>=3?'Good mix':'Add more');
+  const inq=+document.getElementById('sl-inq').value;
+  setFactor('inq',inq+' inquiries',Math.max(100-inq*15,0),inq<=2?'var(--green)':inq<=5?'var(--amber)':'var(--red)',inq<=2?'Good':inq<=5?'Moderate':'High');
+  const mix=+document.getElementById('sl-mix').value;
+  setFactor('mix',['Poor','Fair','Good','Excellent'][mix],(mix/3)*100,'#8b5cf6',['Poor','Fair','Good','Excellent'][mix]);
+}
+
+function setFactor(key,val,pct,color,impact){
+  const fill=document.getElementById('fc-'+key+'-fill');
+  const valEl=document.getElementById('fc-'+key+'-val');
+  const impEl=document.getElementById('fc-'+key+'-impact');
+  if(fill){fill.style.width=pct+'%';fill.style.background=color;}
+  if(valEl)valEl.textContent=val;
+  if(impEl){impEl.textContent=impact;impEl.style.color=color;}
 }
 
 // ══ BOOT ══
