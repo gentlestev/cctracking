@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CARDLENS VERSION 4.0 — Profile Popup + Settings + Credit Score Multi-Source -->
+<!-- CARDLENS VERSION 4.1 — Profile Popup + Settings + Credit Score Multi-Source + Min Payment Tracking -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -286,6 +286,34 @@ tbody tr:hover{background:#fafbff}
 .score-slider{width:100%;accent-color:var(--accent);height:6px;cursor:pointer}
 .score-disclaimer{background:var(--accent-lt);border:1px solid rgba(108,99,255,.2);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--accent);margin-top:16px;line-height:1.6}
 
+/* ── MIN PAYMENTS PAGE ── */
+.mp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.mp-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);transition:border-color .2s,background .2s}
+.mp-card.paid{border-color:var(--green);background:var(--green-lt)}
+.mp-card.overdue{border-color:var(--red);background:var(--red-lt)}
+.mp-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.mp-dot{width:34px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.mp-name{font-weight:700;font-size:14px}
+.mp-amt{font-size:11.5px;color:var(--muted)}
+.mp-due-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:10px 12px;background:var(--surface2);border-radius:10px}
+.mp-due-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.mp-due-date{font-size:15px;font-weight:800}
+.mp-status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:600;margin-bottom:12px}
+.mp-status-badge.paid{background:var(--green-lt);color:#0a7a47}
+.mp-status-badge.due{background:var(--amber-lt);color:#946308}
+.mp-status-badge.overdue{background:var(--red-lt);color:#b42318}
+.mp-toggle-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.mp-toggle{position:relative;width:44px;height:24px;flex-shrink:0;display:inline-block}
+.mp-toggle input{opacity:0;width:0;height:0;position:absolute}
+.mp-toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:background .2s}
+.mp-toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.mp-toggle input:checked+.mp-toggle-slider{background:var(--green)}
+.mp-toggle input:checked+.mp-toggle-slider::before{transform:translateX(20px)}
+.mp-toggle-label{font-size:12.5px;font-weight:600;color:var(--muted)}
+.mp-next{font-size:11.5px;color:var(--muted);margin-top:10px}
+.mp-setup .sfield{margin-bottom:10px}
+.mp-edit-link{font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;margin-top:8px;display:inline-block}
+
 /* ── HAMBURGER ── */
 .hamburger{display:none;flex-direction:column;gap:5px;background:transparent;border:none;padding:6px}
 .hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
@@ -427,6 +455,7 @@ tbody tr:hover{background:#fafbff}
     <button class="nav-item active" id="nav-dashboard" onclick="navTo('dashboard')"><span class="ico">📊</span>Dashboard</button>
     <button class="nav-item" id="nav-analytics" onclick="navTo('analytics')"><span class="ico">📈</span>Analytics</button>
     <button class="nav-item" id="nav-creditscore" onclick="navTo('creditscore')"><span class="ico">🏆</span>Credit Score</button>
+    <button class="nav-item" id="nav-minpayments" onclick="navTo('minpayments')"><span class="ico">💵</span>Min Payments</button>
     <div style="margin-top:16px"></div>
     <div class="nav-label">Account</div>
     <button class="nav-item" id="nav-settings" onclick="navTo('settings')"><span class="ico">⚙️</span>Settings</button>
@@ -730,6 +759,19 @@ tbody tr:hover{background:#fafbff}
         </div>
       </div>
 
+      <!-- ══ MIN PAYMENTS PAGE ══ -->
+      <div class="page" id="page-minpayments">
+        <div class="section-head">
+          <div><h2>Minimum Payment Tracking</h2><p>Set your last minimum payment date once per card — CardLens calculates the next due date and lets you check off each month.</p></div>
+        </div>
+        <div id="mp-grid" class="mp-grid"></div>
+        <div id="mp-empty" class="score-empty-state" style="display:none">
+          <div class="sei">💵</div>
+          <h3>No cards yet</h3>
+          <p>Add a credit card on the Dashboard first, then come back here to set up minimum payment tracking.</p>
+        </div>
+      </div>
+
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /app-screen -->
@@ -862,6 +904,7 @@ function validEmail(e){
 const COLORS=['#6c63ff','#0ea5e9','#12b76a','#f04438','#f79009','#ec4899','#8b5cf6','#14b8a6','#f97316','#06b6d4'];
 let cards=[], hidKpis={}, hidCards={}, delTarget=null, saveTimer=null, currentUser=null;
 let chartCurve=null, chartDonut=null, chartBars=null, chartGauge=null;
+let mpEditingSet = new Set();
 
 // ══ UTILS ══
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -999,7 +1042,7 @@ function defCards(){return[
 
 // ══ NAVIGATION ══
 let curPage='dashboard';
-const PAGE_TITLES={dashboard:'Dashboard',analytics:'Analytics',creditscore:'Credit Score',settings:'Settings'};
+const PAGE_TITLES={dashboard:'Dashboard',analytics:'Analytics',creditscore:'Credit Score',minpayments:'Min Payments',settings:'Settings'};
 function navTo(p){
   curPage=p;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -1010,12 +1053,13 @@ function navTo(p){
   if(p==='analytics')renderAnalytics();
   if(p==='settings')loadProfileFields();
   if(p==='creditscore')renderCreditScore();
+  if(p==='minpayments')renderMinPayments();
   closeSB();
 }
 
 // ══ RENDER DASHBOARD ══
 function sorted(){return[...cards].sort((a,b)=>(+b.limit||0)-(+a.limit||0))}
-function render(){renderTable();renderKPIs();renderBarChart();if(curPage==='analytics')renderAnalytics()}
+function render(){renderTable();renderKPIs();renderBarChart();if(curPage==='analytics')renderAnalytics();if(curPage==='minpayments')renderMinPayments()}
 
 function renderTable(){
   const tb=document.getElementById('tbody');
@@ -1575,6 +1619,99 @@ function setFactor(key,val,pct,color,impact){
   if(fill){fill.style.width=pct+'%';fill.style.background=color;}
   if(valEl)valEl.textContent=val;
   if(impEl){impEl.textContent=impact;impEl.style.color=color;}
+}
+
+// ══ MIN PAYMENTS ══
+function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+function clampedDate(y,m,day){ const dim=daysInMonth(y,m); return new Date(y,m,Math.min(day,dim)); }
+function pad2(n){ return String(n).padStart(2,'0'); }
+function periodKey(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1); }
+function fmtMPDate(d){ return d.toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}); }
+
+function computeMPStatus(card){
+  const mp=card.mp;
+  if(!mp||!mp.anchor) return null;
+  const anchor=new Date(mp.anchor+'T00:00:00');
+  const anchorDay=anchor.getDate();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const y=today.getFullYear(), m=today.getMonth();
+  const due=clampedDate(y,m,anchorDay);
+  const key=periodKey(due);
+  const paid=!!(mp.paid && mp.paid[key]);
+  const overdue=!paid && today>due;
+  let nextDue=null;
+  if(paid){
+    const nm=m+1, ny=y+(nm>11?1:0), nmm=nm%12;
+    nextDue=clampedDate(ny,nmm,anchorDay);
+  }
+  return{due,key,paid,overdue,anchorDay,nextDue};
+}
+
+function renderMinPayments(){
+  const grid=document.getElementById('mp-grid');
+  const empty=document.getElementById('mp-empty');
+  if(!cards.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML=sorted().map((c,i)=>{
+    const dot=`<div class="mp-dot" style="background:${cl(i)}">${ini(c.name)}</div>`;
+    const st=computeMPStatus(c);
+    if(!st||mpEditingSet.has(c.id)){
+      const amt=c.mp&&c.mp.amount?c.mp.amount:'';
+      const anchor=c.mp&&c.mp.anchor?c.mp.anchor:'';
+      return`<div class="mp-card">
+  <div class="mp-head">${dot}<div><div class="mp-name">${esc(c.name)}</div><div class="mp-amt">Set up tracking</div></div></div>
+  <div class="mp-setup">
+    <div class="sfield"><label>Last Minimum Payment Date</label><input type="date" id="mp-date-${c.id}" value="${anchor}"/></div>
+    <div class="sfield"><label>Minimum Payment Amount <span class="opt">optional</span></label><input type="number" min="0" step="1" id="mp-amt-${c.id}" placeholder="e.g. 25" value="${amt}"/></div>
+    <button class="btn-save" style="width:100%;justify-content:center" onclick="setupMinPay('${c.id}')">💾 Save &amp; Start Tracking</button>
+  </div>
+</div>`;
+    }
+    const badgeCls=st.paid?'paid':st.overdue?'overdue':'due';
+    const badgeTxt=st.paid?'✅ Paid':st.overdue?'🚨 Overdue':'⏳ Due';
+    const cardCls=st.paid?'paid':st.overdue?'overdue':'';
+    const monthName=st.due.toLocaleDateString('en-CA',{month:'long'});
+    return`<div class="mp-card ${cardCls}">
+  <div class="mp-head">${dot}<div><div class="mp-name">${esc(c.name)}</div><div class="mp-amt">${c.mp.amount?fmt(c.mp.amount):'No amount set'}</div></div></div>
+  <span class="mp-status-badge ${badgeCls}">${badgeTxt}</span>
+  <div class="mp-due-row"><span class="mp-due-label">Due this period</span><span class="mp-due-date">${fmtMPDate(st.due)}</span></div>
+  <div class="mp-toggle-row">
+    <label class="mp-toggle"><input type="checkbox" ${st.paid?'checked':''} onchange="toggleMinPaid('${c.id}','${st.key}')"/><span class="mp-toggle-slider"></span></label>
+    <span class="mp-toggle-label">${st.paid?'Marked paid for '+monthName:'Mark as paid'}</span>
+  </div>
+  ${st.paid?`<div class="mp-next">Next due: <b>${fmtMPDate(st.nextDue)}</b></div>`:''}
+  <span class="mp-edit-link" onclick="editMinPay('${c.id}')">✏️ Edit setup</span>
+</div>`;
+  }).join('');
+}
+
+function setupMinPay(cardId){
+  const c=cards.find(x=>x.id===cardId); if(!c) return;
+  const dateEl=document.getElementById('mp-date-'+cardId);
+  const amtEl=document.getElementById('mp-amt-'+cardId);
+  const dateVal=dateEl?dateEl.value:'';
+  const amtVal=amtEl?amtEl.value:'';
+  if(!dateVal){ showToast('❌ Please pick a date'); return; }
+  c.mp=c.mp||{};
+  c.mp.anchor=dateVal;
+  c.mp.amount=amtVal?+amtVal:null;
+  c.mp.paid=c.mp.paid||{};
+  mpEditingSet.delete(cardId);
+  sched(); renderMinPayments();
+  showToast('Tracking started ✓');
+}
+
+function editMinPay(cardId){
+  mpEditingSet.add(cardId);
+  renderMinPayments();
+}
+
+function toggleMinPaid(cardId,key){
+  const c=cards.find(x=>x.id===cardId); if(!c||!c.mp) return;
+  c.mp.paid=c.mp.paid||{};
+  c.mp.paid[key]=!c.mp.paid[key];
+  sched(); renderMinPayments();
+  showToast(c.mp.paid[key]?'Marked paid ✓':'Marked unpaid');
 }
 
 // ══ PROFILE POPUP ══
